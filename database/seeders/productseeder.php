@@ -8,14 +8,6 @@ use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
-    /**
-     * Seed realistic product inventory across all component categories.
-     *
-     * Spec keys match what CompatibilityEngine / SpecExtractorService expect
-     * (socket, memory_type/ram_type, form_factor, tdp, wattage, gpu_length,
-     * max_gpu_clearance, etc.) so the AI build assistant and the manual
-     * compatibility checker both have real data to reason over.
-     */
     public function run(): void
     {
         $categories = Category::pluck('id', 'slug');
