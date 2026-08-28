@@ -17,30 +17,20 @@ class ChatController extends Controller
     protected GeminiApiService $geminiApi;
     protected RecommendationMapperService $recommendationMapper;
     protected HardwareRecommendationEngine $hardwareEngine;
-<<<<<<< Updated upstream
-=======
     protected CompatibilityEngine $compatibilityEngine;
->>>>>>> Stashed changes
 
     public function __construct(
         ChatSessionManager $sessionManager,
         GeminiApiService $geminiApi,
         RecommendationMapperService $recommendationMapper,
-<<<<<<< Updated upstream
-        HardwareRecommendationEngine $hardwareEngine
-=======
         HardwareRecommendationEngine $hardwareEngine,
         CompatibilityEngine $compatibilityEngine
->>>>>>> Stashed changes
     ) {
         $this->sessionManager = $sessionManager;
         $this->geminiApi = $geminiApi;
         $this->recommendationMapper = $recommendationMapper;
         $this->hardwareEngine = $hardwareEngine;
-<<<<<<< Updated upstream
-=======
         $this->compatibilityEngine = $compatibilityEngine;
->>>>>>> Stashed changes
     }
 
     public function index(Request $request)
@@ -102,39 +92,16 @@ class ChatController extends Controller
 
     protected function processWithAI(string $input, array $payloadContext = []): array
     {
-<<<<<<< Updated upstream
-        try {
-            $geminiResponse = $this->geminiApi->generateHardwareRecommendation($payloadContext);
-
-            if ($geminiResponse && !empty($geminiResponse['components'])) {
-                $handled = $this->handleGeminiResponse($geminiResponse);
-=======
         // 1. If Gemini API is configured with a valid key, attempt cloud AI generation
         if ($this->geminiApi->isConfigured()) {
             $geminiResponse = $this->geminiApi->generateHardwareRecommendation($payloadContext);
 
             if ($geminiResponse) {
                 $handled = $this->handleGeminiResponse($input, $geminiResponse);
->>>>>>> Stashed changes
                 if ($handled) {
                     return $handled;
                 }
             }
-<<<<<<< Updated upstream
-        } catch (\Throwable $e) {
-            Log::warning('Gemini API call failed, delegating to HardwareRecommendationEngine: ' . $e->getMessage());
-        }
-
-        // Delegate to the intelligent Hardware Recommendation Engine
-        return $this->hardwareEngine->processRequest($input);
-    }
-
-    protected function handleGeminiResponse(array $geminiResponse): ?array
-    {
-        try {
-            $mapped = $this->recommendationMapper->mapRecommendationsToProducts($geminiResponse);
-            $text = $mapped['explanation'] ?? 'Here is my hardware recommendation:';
-=======
         }
 
         // 2. Local Intelligent Hardware Recommendation Engine (Fast, 100% Compatible, Full 7-part builds)
@@ -147,7 +114,6 @@ class ChatController extends Controller
             $mapped = $this->recommendationMapper->mapRecommendationsToProducts($geminiResponse);
             $text = trim($mapped['explanation'] ?? ($geminiResponse['explanation'] ?? ''));
 
->>>>>>> Stashed changes
             $matchedProducts = [];
             if (!empty($mapped['components'])) {
                 foreach ($mapped['components'] as $component) {
@@ -157,43 +123,23 @@ class ChatController extends Controller
                 }
             }
 
-<<<<<<< Updated upstream
-            if (!empty($matchedProducts)) {
-=======
             // If Gemini returned a full build (4 or more parts), check and render build card
             if (count($matchedProducts) >= 4) {
->>>>>>> Stashed changes
                 $productIds = collect($matchedProducts)->pluck('id')->toArray();
                 $compatCheck = $this->compatibilityEngine->checkCompatibility($productIds);
 
-<<<<<<< Updated upstream
-                $fullProducts = Product::with(['category', 'specifications'])->whereIn('id', $productIds)->get();
-                $totalPrice = $fullProducts->sum('price');
-=======
                 $totalPrice = collect($matchedProducts)->sum(function ($p) {
                     return (float) str_replace(['$', ','], '', $p->price);
                 });
->>>>>>> Stashed changes
 
                 $cardHtml = view('chat.partials.build-card', [
-                    'products' => $fullProducts,
+                    'products' => collect($matchedProducts),
                     'isCompatible' => $compatCheck['is_compatible'],
                     'incompatibilities' => $compatCheck['incompatibilities'],
                     'totalPrice' => $totalPrice,
                 ])->render();
 
                 return [
-<<<<<<< Updated upstream
-                    'text' => $text,
-                    'payload' => [
-                        'intent' => 'build_recommendation',
-                        'card_html' => $cardHtml,
-                        'suggested_products' => $fullProducts->map(fn ($p) => [
-                            'id' => $p->id,
-                            'name' => $p->name,
-                            'category' => $p->category->name ?? 'Part',
-                            'price' => '$' . number_format($p->price, 2),
-=======
                     'text' => $text ?: "Here is my custom build recommendation:",
                     'payload' => [
                         'intent' => 'build_recommendation',
@@ -202,19 +148,11 @@ class ChatController extends Controller
                             'id' => $p->id,
                             'name' => $p->name,
                             'price' => $p->price,
->>>>>>> Stashed changes
                             'brand' => $p->brand,
                         ])->toArray(),
                     ],
                 ];
             }
-<<<<<<< Updated upstream
-        } catch (\Throwable $e) {
-            Log::error('Error in handleGeminiResponse: ' . $e->getMessage());
-        }
-
-        return null;
-=======
 
             // If Gemini returned specific component suggestions (1 to 3 parts)
             if (!empty($matchedProducts)) {
@@ -245,6 +183,5 @@ class ChatController extends Controller
             Log::warning('Error handling Gemini response: ' . $e->getMessage());
             return null;
         }
->>>>>>> Stashed changes
     }
 }

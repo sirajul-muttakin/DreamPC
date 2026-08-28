@@ -87,7 +87,7 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $categorySlug => $items) {
             if (!isset($categories[$categorySlug])) {
-                continue; // category wasn't seeded — skip rather than fail the whole run
+                continue;
             }
 
             foreach ($items as $item) {
@@ -99,6 +99,7 @@ class ProductSeeder extends Seeder
                         'brand' => $item['brand'],
                         'price' => $item['price'],
                         'stock_quantity' => $item['stock'],
+                        'image_path' => '/images/products/' . $categorySlug . '.jpg',
                         'description' => $item['name'] . ' — ' . ucfirst($categorySlug) . ' component.',
                     ]
                 );

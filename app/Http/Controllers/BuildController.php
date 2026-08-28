@@ -4,14 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\BuildCostCalculator;
+use App\Services\CartService;
+use App\Services\CompatibilityEngine;
+use App\Services\SpecExtractorService;
 
 class BuildController extends Controller
 {
     protected BuildCostCalculator $calculator;
+    protected CartService $cartService;
+    protected CompatibilityEngine $compatibilityEngine;
+    protected SpecExtractorService $specExtractor;
 
-    public function __construct(BuildCostCalculator $calculator)
-    {
+    public function __construct(
+        BuildCostCalculator $calculator,
+        CartService $cartService,
+        CompatibilityEngine $compatibilityEngine,
+        SpecExtractorService $specExtractor
+    ) {
         $this->calculator = $calculator;
+        $this->cartService = $cartService;
+        $this->compatibilityEngine = $compatibilityEngine;
+        $this->specExtractor = $specExtractor;
     }
 
     /**
@@ -54,24 +67,31 @@ class BuildController extends Controller
         }
         $productIds = array_values(array_filter(array_map('intval', (array)$productIds)));
 
-        // Fallback: If no product IDs provided, pick sample products
-        if (empty($productIds)) {
-            $productIds = \App\Models\Product::pluck('id')->take(4)->toArray();
-        }
+        $products = collect();
 
-        $products = \App\Models\Product::with(['category', 'specifications'])->whereIn('id', $productIds)->get();
+        // 1. If explicit product_ids provided
+        if (!empty($productIds)) {
+            $products = \App\Models\Product::with(['category', 'specifications'])->whereIn('id', $productIds)->get();
+        } else {
+            // 2. Otherwise load from active Cart
+            $cart = $this->cartService->getOrCreateCart();
+            $cart->loadMissing('items.product.category', 'items.product.specifications');
+            $cartProducts = $cart->items->pluck('product')->filter()->values();
+            if ($cartProducts->isNotEmpty()) {
+                $products = $cartProducts;
+                $productIds = $products->pluck('id')->toArray();
+            }
+        }
 
         // 1. Cost Breakdown & Percentages
         $costBreakdown = $this->calculator->calculateFullBreakdown($productIds);
 
         // 2. Compatibility & Bottleneck Checks
-        $compatibilityEngine = app(\App\Services\CompatibilityEngine::class);
-        $compatResult = $compatibilityEngine->checkCompatibility($productIds);
-        $warningsResult = $compatibilityEngine->detectBottlenecksAndConflicts($productIds);
+        $compatResult = $this->compatibilityEngine->checkCompatibility($productIds);
+        $warningsResult = $this->compatibilityEngine->detectBottlenecksAndConflicts($productIds);
 
         // 3. System Power TDP
-        $specExtractor = app(\App\Services\SpecExtractorService::class);
-        $context = $specExtractor->getSystemSpecsContext($productIds);
+        $context = $this->specExtractor->getSystemSpecsContext($productIds);
         
         $totalTdp = 0;
         foreach ($context['components'] as $component) {
@@ -83,10 +103,11 @@ class BuildController extends Controller
                 }
             }
         }
-        if ($totalTdp === 0) {
-            $totalTdp = 350; // Default reasonable baseline estimate
-        }
+        
         $recommendedPsuWattage = (int)ceil($totalTdp * 1.25);
+        if ($totalTdp === 0) {
+            $recommendedPsuWattage = 0;
+        }
 
         return view('build.summary', [
             'products' => $products,

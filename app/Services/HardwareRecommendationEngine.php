@@ -30,44 +30,23 @@ class HardwareRecommendationEngine
             return $this->handleCompatibilityAdvice($lower);
         }
 
-<<<<<<< Updated upstream
-        // 2. Check if user is asking about a specific component category
-        if ($this->isComponentAdviceRequest($lower) && !$this->isExplicitFullBuildRequest($lower)) {
-            return $this->handleComponentAdvice($lower);
-        }
-
-        // 3. Check if user is asking for a full PC build or has budget constraints
-=======
         // 2. Check if user is asking for a PC build or has build keywords
->>>>>>> Stashed changes
         if ($this->isBuildRequest($lower)) {
             return $this->handleBuildRequest($input, $lower);
         }
 
-<<<<<<< Updated upstream
-        // 4. Fallback check for any component keywords
-=======
         // 3. Check if user is asking for single-component advice
->>>>>>> Stashed changes
         if ($this->isComponentAdviceRequest($lower)) {
             return $this->handleComponentAdvice($lower);
         }
 
         // Default: General help
         return [
-<<<<<<< Updated upstream
-            'text' => "👋 Hello! I am your AI Hardware Assistant. I can help you with:\n\n" .
-                      "• **Full Custom PC Builds**: Ask for a build with your budget (e.g. *\"Build me a $1500 gaming PC\"* or *\"AMD esports build under $1000\"*)\n" .
-                      "• **Component Selection**: Ask about GPUs, CPUs, Motherboards, RAM, Storage, or PSUs (e.g. *\"What GPU should I get for 1440p gaming?\"*)\n" .
-                      "• **Compatibility Checks**: Ask about socket matches, DDR4 vs DDR5, or PSU wattage requirements.\n\n" .
-                      "What would you like to build or check today?",
-=======
             'text' => "👋 Hello! I am your AI Hardware Assistant for DreamPC. Here is how I can help:\n\n" .
                       "• **Full Custom PC Builds**: Give me your budget and use case (e.g. *\"Build a $1500 gaming PC\"* or *\"AMD esports rig for $1000\"*)\n" .
                       "• **Component Selection**: Ask about GPUs, CPUs, Motherboards, RAM, Storage, or PSUs (e.g. *\"What GPU should I get for 1440p?\"*)\n" .
                       "• **Compatibility Checks**: Ask about socket matching (AM5 vs LGA1700), DDR4 vs DDR5, or PSU wattage requirements.\n\n" .
                       "What would you like to configure or check today?",
->>>>>>> Stashed changes
             'payload' => ['intent' => 'general_help']
         ];
     }
@@ -82,42 +61,13 @@ class HardwareRecommendationEngine
     }
 
     /**
-<<<<<<< Updated upstream
-     * Determine if message is explicitly asking for a complete full PC build.
-     */
-    protected function isExplicitFullBuildRequest(string $lower): bool
-    {
-        $explicitFullBuildPhrases = [
-            'build a pc', 'build me a', 'build a gaming', 'full build', 'complete build',
-            'custom build', 'pc build', 'rig for', 'build under', 'build for',
-            'pc for $', 'pc under $', 'pc around', 'gaming rig', 'recommend a build',
-            'parts for a pc', 'entire build', 'new build', 'system build'
-        ];
-
-        foreach ($explicitFullBuildPhrases as $phrase) {
-            if (str_contains($lower, $phrase)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-=======
->>>>>>> Stashed changes
      * Determine if message represents a PC build recommendation request.
      */
     protected function isBuildRequest(string $lower): bool
     {
         $buildKeywords = [
-<<<<<<< Updated upstream
-            'build', 'rig', 'setup', 'system', 'pc', 'computer', 'machine',
-            'desktop', 'budget', '$', 'parts', 'config'
-=======
             'build', 'rig', 'setup', 'system', 'machine',
             'desktop', 'budget', '$', 'parts for', 'config'
->>>>>>> Stashed changes
         ];
 
         foreach ($buildKeywords as $kw) {
@@ -126,13 +76,10 @@ class HardwareRecommendationEngine
             }
         }
 
-<<<<<<< Updated upstream
-=======
         if (str_contains($lower, 'pc') && (str_contains($lower, 'gaming') || str_contains($lower, 'extreme') || str_contains($lower, '4k') || str_contains($lower, '1440p') || str_contains($lower, 'cheap') || str_contains($lower, 'best') || str_contains($lower, 'for'))) {
             return true;
         }
 
->>>>>>> Stashed changes
         return false;
     }
 
@@ -163,11 +110,7 @@ class HardwareRecommendationEngine
     /**
      * Handle building a complete, 100% compatible 7-part PC build.
      */
-<<<<<<< Updated upstream
-    protected function handleBuildRequest(string $input, string $lower): array
-=======
     public function handleBuildRequest(string $input, string $lower): array
->>>>>>> Stashed changes
     {
         // 1. Extract Target Budget
         $budget = $this->extractBudget($input, $lower);
@@ -176,11 +119,7 @@ class HardwareRecommendationEngine
         $cpuBrand = 'any';
         if (str_contains($lower, 'amd') || str_contains($lower, 'ryzen')) {
             $cpuBrand = 'AMD';
-<<<<<<< Updated upstream
-        } elseif (str_contains($lower, 'intel') || str_contains($lower, 'core') || str_contains($lower, 'i5') || str_contains($lower, 'i7')) {
-=======
         } elseif (str_contains($lower, 'intel') || str_contains($lower, 'core') || str_contains($lower, 'i5') || str_contains($lower, 'i7') || str_contains($lower, 'i9')) {
->>>>>>> Stashed changes
             $cpuBrand = 'Intel';
         }
 
@@ -491,11 +430,7 @@ class HardwareRecommendationEngine
     /**
      * Handle single-category hardware inquiries.
      */
-<<<<<<< Updated upstream
-    protected function handleComponentAdvice(string $lower): array
-=======
     public function handleComponentAdvice(string $lower): array
->>>>>>> Stashed changes
     {
         $all = Product::with(['category', 'specifications'])->where('stock_quantity', '>', 0)->get();
 
@@ -579,11 +514,7 @@ class HardwareRecommendationEngine
         ];
     }
 
-<<<<<<< Updated upstream
-    protected function handleCompatibilityAdvice(string $lower): array
-=======
     public function handleCompatibilityAdvice(string $lower): array
->>>>>>> Stashed changes
     {
         return [
             'text' => "⚙️ **DreamPC Automated Compatibility Engine Rules**:\n\n" .
@@ -597,11 +528,7 @@ class HardwareRecommendationEngine
         ];
     }
 
-<<<<<<< Updated upstream
-    protected function extractBudget(string $input, string $lower): float
-=======
     public function extractBudget(string $input, string $lower): float
->>>>>>> Stashed changes
     {
         if (preg_match('/\$?\s*(\d{3,5})\s*(?:dollars|\$|usd)?/i', $input, $matches)) {
             return (float)$matches[1];
@@ -615,22 +542,14 @@ class HardwareRecommendationEngine
             return 850.0;
         }
 
-<<<<<<< Updated upstream
-        if (str_contains($lower, 'ultra') || str_contains($lower, '4k') || str_contains($lower, 'enthusiast') || str_contains($lower, 'high end')) {
-=======
         if (str_contains($lower, 'ultra') || str_contains($lower, '4k') || str_contains($lower, 'enthusiast') || str_contains($lower, 'extreme') || str_contains($lower, 'beast') || str_contains($lower, 'no budget limit')) {
->>>>>>> Stashed changes
             return 2800.0;
         }
 
         return 1400.0; // Default standard balanced tier
     }
 
-<<<<<<< Updated upstream
-    protected function getSpecsMap(Product $product): array
-=======
     public function getSpecsMap(Product $product): array
->>>>>>> Stashed changes
     {
         $product->loadMissing('specifications');
         $map = [];
