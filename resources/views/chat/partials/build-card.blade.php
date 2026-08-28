@@ -2,10 +2,10 @@
     <!-- Header with Compatibility Badge & Total Price -->
     <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-2">
-            <span class="text-xs font-semibold text-slate-300">Suggested Hardware Spec</span>
+            <span class="text-xs font-semibold text-slate-300">Complete Hardware Build Spec</span>
             @if($isCompatible ?? true)
                 <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                    <span>✓</span> 100% Compatible
+                    <span>✓</span> 100% Compatible ({{ count($products) }} Parts)
                 </span>
             @else
                 <span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-wider">
@@ -15,12 +15,12 @@
         </div>
         <div class="text-right">
             <span class="text-[10px] text-slate-500 block">Est. Build Total</span>
-            <span class="text-sm font-bold text-emerald-400">${{ number_format($totalPrice ?? 0, 2) }}</span>
+            <span class="text-sm font-bold text-emerald-400 font-mono">${{ number_format($totalPrice ?? 0, 2) }}</span>
         </div>
     </div>
 
     <!-- Product Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         @foreach($products as $product)
             <div class="bg-slate-900/80 border border-slate-800/80 hover:border-blue-500/40 p-3 rounded-lg flex items-center space-x-3 transition">
                 <div class="w-12 h-12 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -31,11 +31,14 @@
                     @endif
                 </div>
                 <div class="flex-grow min-w-0">
-                    <h4 class="text-xs font-medium text-slate-200 truncate">{{ $product->name }}</h4>
-                    <div class="flex items-center justify-between mt-1">
-                        <span class="text-[10px] text-slate-400 font-mono">{{ $product->brand }}</span>
-                        <span class="text-xs font-bold text-emerald-400">${{ number_format($product->price, 2) }}</span>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[9px] bg-slate-800 text-slate-300 border border-slate-700/60 px-1.5 py-0.5 rounded font-mono uppercase">
+                            {{ $product->category->name ?? 'Part' }}
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-mono">{{ $product->brand }}</span>
                     </div>
+                    <h4 class="text-xs font-semibold text-slate-200 truncate mt-0.5">{{ $product->name }}</h4>
+                    <div class="text-xs font-bold text-emerald-400 font-mono mt-0.5">${{ number_format($product->price, 2) }}</div>
                 </div>
             </div>
         @endforeach
