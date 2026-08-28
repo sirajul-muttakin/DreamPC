@@ -1,0 +1,361 @@
+================================================================================
+DREAMPC: INTELLIGENT HARDWARE MARKETPLACE & AI PC BUILD PLATFORM
+COMPREHENSIVE TECHNICAL ARCHITECTURE & FEATURES BY SIRAJUL MUTTAKIN (MEMBER 2)
+================================================================================
+
+TABLE OF CONTENTS:
+1. EXECUTIVE SUMMARY & TECH STACK
+2. END-TO-END SYSTEM WORKFLOW & ARCHITECTURE
+3. FULL PROJECT FEATURE BREAKDOWN ACROSS SPRINTS
+4. EXTENSIVE BREAKDOWN OF FEATURES DEVELOPED BY SIRAJUL MUTTAKIN (MEMBER 2)
+   - Feature 6: Automated Hardware Compatibility Engine
+   - Feature 8: Hardware Conflict & Bottleneck Detector
+   - Feature 7: Real-Time Build Cost Calculation Engine
+   - Feature 9: AI-Driven Budget Optimization & Alternative Matcher
+   - Feature 10: Dynamic Visual PC Build Summary Generator
+5. CODE ARCHITECTURE, SERVICE IMPLEMENTATIONS & MATHEMATICAL LOGIC
+6. SUMMARY OF IMPLEMENTED FILES & TESTING VERIFICATION
+
+================================================================================
+1. EXECUTIVE SUMMARY & TECH STACK
+================================================================================
+DreamPC is an enterprise-grade, conversational PC hardware marketplace built on top of the Laravel MVC framework. It combines standard e-commerce features with an Automated Hardware Compatibility & Rules Engine and an NLP AI Hardware Assistant (powered by Google Gemini API with smart algorithmic fallback).
+
+Core Technologies Used:
+- Backend Framework: PHP 8.2+ with Laravel 11.x (MVC Architecture, Service Layer Pattern)
+- Database: MySQL with Eloquent ORM, normalized relations, and foreign key constraints
+- Frontend & Styling: Blade Templating Engine, Tailwind CSS (Custom extended design system with Dark/Light mode), Vanilla JavaScript (AJAX / Fetch API, real-time DOM hydration, CSS3 micro-animations)
+- Hardware Analysis & Calculations: Custom algorithmic services (CompatibilityEngine, BuildCostCalculator, BudgetOptimizerService, HardwareRecommendationEngine, SpecExtractorService)
+- Artificial Intelligence: Google Gemini 1.5 Flash API with JSON structured schema output + local intelligent recommendation engine
+- Testing & Quality Assurance: PHPUnit Automated Feature & Unit Test Suite
+
+================================================================================
+2. END-TO-END SYSTEM WORKFLOW & ARCHITECTURE
+================================================================================
+The DreamPC platform operates as an integrated pipeline across 6 distinct layers:
+
+1. Data Layer:
+   Products and their key-value technical specifications (e.g., socket: AM5, memory_type: DDR5, tdp: 120W, gpu_length: 304mm, supported_form_factors: ATX) are stored in the database. SpecExtractorService normalizes these into standard key-value maps.
+
+2. Recommendation & AI Layer:
+   Users can interact via the Natural Language Processing Chat Interface. The system parses budget constraints, gaming resolutions, brand preferences (Intel vs. AMD, NVIDIA vs. Radeon), and hardware queries. It queries Gemini API or the local HardwareRecommendationEngine to generate full, 7-component compatible PC builds (CPU, Motherboard, RAM, GPU, Storage, PSU, Case).
+
+3. Validation & Rules Engine Layer:
+   Every build configuration is passed through CompatibilityEngine to guarantee 100% mutual hardware compatibility (CPU Socket match, RAM Generation match, Case Form Factor clearance, PSU TDP headroom) and detect bottleneck/clearance conflicts before purchase.
+
+4. Cost Calculation & Optimization Layer:
+   BuildCostCalculator aggregates subtotals, applies regional taxes, computes dynamic shipping based on component counts, and tracks item percentage cost allocations. If a build exceeds budget limits, BudgetOptimizerService automatically identifies non-critical parts (Storage, Case, Cooler, RAM) and swaps them for cost-effective alternatives.
+
+5. Cart & Batch Execution Layer:
+   Users can add individual components or export entire 7-component AI builds to their cart in a single atomic action. Real-time AJAX controls allow quantity edits, item deletions, and alternative component swaps.
+
+6. Checkout, Discount & Historical Snapshot Layer:
+   The checkout engine applies promotional discount coupons, allows users to choose between Express Delivery or In-Store Pickup with date scheduling, creates orders, and generates immutable JSON specification snapshots for permanent warranty and one-click reordering.
+
+================================================================================
+3. FULL PROJECT FEATURE BREAKDOWN ACROSS SPRINTS
+================================================================================
+
+Phase 1: Database Population & Foundation (Sprint 1)
+- Feature 19: Admin Hardware Inventory & Specification CRUD Dashboard (Member 4)
+- Feature 15: Responsive UI Adaptation & Device Layout Manager (Member 4)
+- Feature 11: Multi-Criteria Advanced Product Catalog & Filter (Member 3)
+- Feature 12: Inventory Stock Pre-Checker for Cart Additions (Member 3)
+
+Phase 2: Core Rules Engine & Price Calculation (Sprint 1–2)
+- Feature 4: Hardware Specification Extractor & Contextual Retriever (Member 1)
+- Feature 6: Automated Hardware Compatibility Engine (Sirajul Muttakin - Member 2)
+- Feature 8: Hardware Conflict & Bottleneck Detector (Sirajul Muttakin - Member 2)
+- Feature 7: Real-Time Build Cost Calculation Engine (Sirajul Muttakin - Member 2)
+
+Phase 3: AI Conversational Engine (Sprint 2)
+- Feature 1: Natural Language Processing Chat Interface (Member 1)
+- Feature 2: Conversational Context & Session State Handler (Member 1)
+- Feature 3: AI Recommendation-to-Database Mapping Engine (Member 1)
+- Feature 5: Dynamic AI Spec Card Renderer (Member 1)
+
+Phase 4: Budget Optimization & Build Summaries (Sprint 3)
+- Feature 9: AI-Driven Budget Optimization & Alternative Matcher (Sirajul Muttakin - Member 2)
+- Feature 10: Dynamic Visual PC Build Summary Generator (Sirajul Muttakin - Member 2)
+
+Phase 5: Cart Management & Batch Exporting (Sprint 3)
+- Feature 14: Interactive Shopping Cart Manager (Member 3)
+- Feature 13: One-Click AI Build Batch-to-Cart Exporter (Member 3)
+
+Phase 6: Checkout, Promotions & Order Archive (Sprint 4)
+- Feature 20: Dynamic Promotional Coupon & Discount Engine (Member 4)
+- Feature 16: Secure Checkout & Delivery/Pickup Scheduler (Member 4)
+- Feature 17: User Order History & Build Archive System (Member 4)
+- Feature 18: One-Click Reordering Engine for Saved Builds (Member 3)
+
+================================================================================
+4. EXTENSIVE BREAKDOWN OF FEATURES DEVELOPED BY SIRAJUL MUTTAKIN (MEMBER 2)
+================================================================================
+
+--------------------------------------------------------------------------------
+FEATURE 6: AUTOMATED HARDWARE COMPATIBILITY ENGINE
+--------------------------------------------------------------------------------
+- Primary File: app/Services/CompatibilityEngine.php
+- Method: checkCompatibility(array $productIds): array
+- Purpose: Acts as the core verification brain of DreamPC. It inspects all components in a user's build and determines whether they are physically and electronically compatible.
+
+Verification Rules Implemented:
+1. CPU Socket vs. Motherboard Socket:
+   - Compares the CPU's socket (e.g. AM5 or LGA1700) with the Motherboard socket.
+   - If they differ, the build is flagged as incompatible with an explicit error:
+     "CPU Socket (AM5) does not match Motherboard Socket (LGA1700)."
+
+2. RAM Memory Generation vs. Motherboard Slot Standard:
+   - Verifies memory generation (DDR4 vs DDR5).
+   - Prevents fatal mismatch errors where DDR4 is slotted onto a DDR5-only board (e.g. AMD AM5 platform).
+
+3. Motherboard Form Factor vs. Chassis Dimensions:
+   - Inspects the motherboard's form factor (ATX, Micro-ATX, Mini-ITX) against the case's supported_form_factors list.
+   - If an ATX motherboard is placed into a Micro-ATX-only case, flags an incompatibility warning.
+
+4. Power Supply (PSU) Output vs. System Total TDP Headroom:
+   - Extracts TDP from each component (CPU TDP, GPU TDP, Motherboard, etc.).
+   - Computes Total TDP and applies an industry safety multiplier: Total TDP * 1.25.
+   - If the installed PSU wattage is less than the calculated minimum, warns the user of possible shutdown risks during transient voltage spikes.
+
+--------------------------------------------------------------------------------
+FEATURE 8: HARDWARE CONFLICT & BOTTLENECK DETECTOR
+--------------------------------------------------------------------------------
+- Primary File: app/Services/CompatibilityEngine.php
+- Method: detectBottlenecksAndConflicts(array $productIds): array
+- Purpose: Extends basic compatibility into advanced structural clearance validation and performance bottleneck detection.
+
+Rules & Diagnostics Implemented:
+1. GPU Length Clearance vs. Case Maximum Clearance:
+   - Extracts the GPU length in millimeters (e.g., RTX 4090 = 304mm).
+   - Extracts the case max_gpu_clearance (e.g., 360mm).
+   - If gpu_length > max_gpu_clearance, returns a physical conflict alert with a recommendation to choose a larger case or shorter graphics card.
+
+2. CPU Cooler Height vs. Case Width Limit:
+   - Compares CPU cooler height (mm) against case max_cooler_height (mm) to ensure the side glass panel closes properly.
+
+3. CPU-GPU Performance Bottlenecks:
+   - Detects extreme pairings (e.g., Flagship GPU like RTX 4090 paired with an entry-level Core i3 or Ryzen 3).
+   - Flags a bottleneck advisory explaining that the CPU will bottleneck the GPU during 1440p/4K high-refresh gaming and content creation.
+
+4. PCIe Bus Generation Bandwidth Bottlenecks:
+   - Checks if a PCIe Gen 4.0 or Gen 5.0 GPU is paired with an older PCIe Gen 3.0 motherboard, advising the user of reduced bandwidth transfer speeds.
+
+--------------------------------------------------------------------------------
+FEATURE 7: REAL-TIME BUILD COST CALCULATION ENGINE
+--------------------------------------------------------------------------------
+- Primary File: app/Services/BuildCostCalculator.php
+- Primary Controller: app/Http/Controllers/BuildController.php (calculateCost method)
+- Endpoint: /api/build/calculate-cost (GET / POST)
+- Purpose: Real-time price aggregation engine that computes component costs, percentage contributions, taxes, and shipping rates.
+
+Calculation Logic:
+1. Subtotal Aggregation:
+   - Sums unit prices across all product IDs in the build (supporting duplicates).
+2. Regional Tax Calculation:
+   - Computes standard 5% sales tax: round(subtotal * 0.05, 2).
+3. Dynamic Shipping Model:
+   - Implements tiered shipping logistics: Base fee of $15.00 + $2.00 per additional hardware component. (0 components = $0.00).
+4. Component Cost Contribution Breakdown:
+   - Calculates the exact percentage each component contributes to the total price:
+     percentage_contribution = round((item_price / subtotal) * 100, 2)
+   - Enables visual representation in progress bar analytics.
+
+--------------------------------------------------------------------------------
+FEATURE 9: AI-DRIVEN BUDGET OPTIMIZATION & ALTERNATIVE MATCHER
+--------------------------------------------------------------------------------
+- Primary File: app/Services/BudgetOptimizerService.php
+- Method: optimizeBuild($currentBuild, float $targetBudget): array
+- Purpose: When a custom PC build exceeds the user's budget ceiling, this service automatically optimizes the component list by safely downgrading non-essential parts while protecting core CPU and GPU gaming performance.
+
+Optimization Algorithm:
+1. Identifies the budget delta: delta = currentTotal - targetBudget.
+2. If delta <= 0, marks build as within_budget.
+3. Filters flexible categories: ['storage', 'case', 'cooler', 'ram', 'psu'] (never downgrades CPU or GPU first).
+4. Sorts flexible components by highest price descending to achieve maximum savings rapidly.
+5. For each flexible component, queries the database for the closest cheaper in-stock alternative in the same category.
+6. Substitutes the component, records the savings, decrements delta, and tracks an audit log of all swapped alternatives.
+
+--------------------------------------------------------------------------------
+FEATURE 10: DYNAMIC VISUAL PC BUILD SUMMARY GENERATOR
+--------------------------------------------------------------------------------
+- Primary Controller: app/Http/Controllers/BuildController.php (showSummary method)
+- Primary View: resources/views/build/summary.blade.php
+- Route: /build/summary
+- Purpose: Renders a visual PC build analytics dashboard containing technical health metrics, power gauges, and financial breakdowns.
+
+Key Sections on the Summary Page:
+1. Configured Hardware Roster:
+   - Displays all selected components with real hardware photos, category pills, brand details, and unit prices.
+2. System TDP & Power Gauge:
+   - Sums total system TDP and calculates the recommended PSU capacity (TDP * 1.25).
+3. Price Allocation Breakdown:
+   - Visual progress bars showing each component's percentage contribution to the total cost.
+4. Automated Compatibility Checklist:
+   - Interactive badge status (100% Fully Verified vs. Warnings Detected) with checklist items for CPU socket match, RAM generation, form factor fit, and PSU headroom.
+5. Quick Actions:
+   - Allows users to add the entire build directly into their active shopping cart with one click.
+
+================================================================================
+5. CODE ARCHITECTURE & SERVICE IMPLEMENTATION DETAILS
+================================================================================
+
+Below are key architectural extracts of Sirajul Muttakin's core services:
+
+--- [1] CompatibilityEngine.php (Extract) ---
+```php
+public function checkCompatibility(array $productIds): array
+{
+    $context = $this->specExtractor->getSystemSpecsContext($productIds);
+    $components = $context['components'];
+    $isCompatible = true;
+    $incompatibilities = [];
+
+    // Socket match
+    if (isset($components['cpu'], $components['motherboard'])) {
+        $cpuSocket = $components['cpu']['specs']['socket'] ?? null;
+        $moboSocket = $components['motherboard']['specs']['socket'] ?? null;
+        if ($cpuSocket && $moboSocket && strtolower($cpuSocket) !== strtolower($moboSocket)) {
+            $isCompatible = false;
+            $incompatibilities[] = "CPU Socket ({$cpuSocket}) does not match Motherboard Socket ({$moboSocket}).";
+        }
+    }
+
+    // RAM generation match
+    if (isset($components['ram'], $components['motherboard'])) {
+        $ramType = $components['ram']['specs']['ram_type'] ?? null;
+        $moboRamType = $components['motherboard']['specs']['memory_type'] ?? null;
+        if ($ramType && $moboRamType && strtolower($ramType) !== strtolower($moboRamType)) {
+            $isCompatible = false;
+            $incompatibilities[] = "RAM Type ({$ramType}) does not match Motherboard supported RAM ({$moboRamType}).";
+        }
+    }
+
+    // Power headroom (TDP * 1.25)
+    $totalTdp = 0;
+    foreach ($components as $component) {
+        $tdpStr = $component['specs']['tdp'] ?? null;
+        if ($tdpStr && preg_match('/(\d+)/', $tdpStr, $m)) {
+            $totalTdp += (int)$m[1];
+        }
+    }
+    if (isset($components['psu'])) {
+        $psuWattage = (int)($components['psu']['specs']['wattage'] ?? 0);
+        $requiredWattage = ceil($totalTdp * 1.25);
+        if ($requiredWattage > $psuWattage) {
+            $isCompatible = false;
+            $incompatibilities[] = "PSU Wattage ({$psuWattage}W) is lower than recommended ({$requiredWattage}W for {$totalTdp}W TDP).";
+        }
+    }
+
+    return ['is_compatible' => $isCompatible, 'incompatibilities' => $incompatibilities];
+}
+```
+
+--- [2] BuildCostCalculator.php (Extract) ---
+```php
+public function calculateFullBreakdown(array $productIds): array
+{
+    $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+    $subtotal = 0.0;
+    foreach ($productIds as $id) {
+        if (isset($products[$id])) {
+            $subtotal += (float)$products[$id]->price;
+        }
+    }
+
+    $tax = round($subtotal * 0.05, 2);
+    $shipping = count($productIds) > 0 ? round(15.00 + ((count($productIds) - 1) * 2.00), 2) : 0.0;
+    $total = round($subtotal + $tax + $shipping, 2);
+
+    $items = [];
+    foreach ($productIds as $id) {
+        if (isset($products[$id])) {
+            $price = (float)$products[$id]->price;
+            $percentage = $subtotal > 0 ? round(($price / $subtotal) * 100, 2) : 0;
+            $items[] = [
+                'product_id' => $id,
+                'name' => $products[$id]->name,
+                'price' => $price,
+                'percentage_contribution' => $percentage,
+            ];
+        }
+    }
+
+    return [
+        'subtotal' => round($subtotal, 2),
+        'tax' => $tax,
+        'shipping' => $shipping,
+        'total' => $total,
+        'items' => $items,
+    ];
+}
+```
+
+--- [3] BudgetOptimizerService.php (Extract) ---
+```php
+public function optimizeBuild($currentBuild, float $targetBudget): array
+{
+    $build = is_array($currentBuild) ? collect($currentBuild) : clone $currentBuild;
+    $delta = $build->sum('price') - $targetBudget;
+    $alternativesUsed = [];
+    $totalSavings = 0;
+
+    if ($delta <= 0) {
+        return ['optimized_build' => $build, 'total_savings' => 0, 'status' => 'within_budget'];
+    }
+
+    $flexible = $build->filter(function ($p) {
+        $slug = strtolower(optional($p->category)->slug ?? '');
+        return in_array($slug, ['storage', 'case', 'cooler', 'ram', 'psu']);
+    })->sortByDesc('price');
+
+    foreach ($flexible as $p) {
+        if ($delta <= 0) break;
+        $cheaper = Product::where('category_id', $p->category_id)
+            ->where('price', '<', $p->price)
+            ->where('stock_quantity', '>', 0)
+            ->orderBy('price', 'desc')
+            ->first();
+
+        if ($cheaper) {
+            $savings = $p->price - $cheaper->price;
+            $build = $build->map(fn($item) => $item->id === $p->id ? $cheaper : $item);
+            $alternativesUsed[] = ['original' => $p->name, 'replacement' => $cheaper->name, 'savings' => $savings];
+            $delta -= $savings;
+            $totalSavings += $savings;
+        }
+    }
+
+    return [
+        'optimized_build' => $build,
+        'total_savings' => $totalSavings,
+        'alternatives_used' => $alternativesUsed,
+        'status' => $build->sum('price') <= $targetBudget ? 'optimized_successfully' : 'partially_optimized',
+        'new_total' => $build->sum('price')
+    ];
+}
+```
+
+================================================================================
+6. SUMMARY OF IMPLEMENTED FILES & TESTING VERIFICATION
+================================================================================
+
+Files created/maintained for Sirajul Muttakin's features:
+1. app/Services/CompatibilityEngine.php (Features 6 & 8)
+2. app/Services/BuildCostCalculator.php (Feature 7)
+3. app/Services/BudgetOptimizerService.php (Feature 9)
+4. app/Http/Controllers/BuildController.php (Features 7 & 10)
+5. resources/views/build/summary.blade.php (Feature 10)
+6. tests/Feature/BuildSummaryTest.php (Automated unit/feature test suite)
+
+Automated Test Verification:
+All features have been tested via PHPUnit (`php artisan test`):
+- Compatibility verification tests
+- Cost calculation, tax, and shipping formula tests
+- Budget optimizer substitution tests
+- Build summary rendering, cart integration, and TDP power analysis tests
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
