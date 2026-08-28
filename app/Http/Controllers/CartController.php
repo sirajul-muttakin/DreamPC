@@ -94,18 +94,27 @@ class CartController extends Controller
 
         $quantity = max(1, (int) $request->input('quantity', 1));
 
-        $this->cartService->addProductsToCart($productIds, $quantity);
+        $cart = $this->cartService->addProductsToCart($productIds, $quantity);
+        $cartCount = $cart->items->sum('quantity');
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
+            $firstProduct = Product::find($productIds[0] ?? null);
             return response()->json([
                 'status' => 'success',
-                'message' => 'Added to cart successfully.',
+                'message' => ($firstProduct ? $firstProduct->name . ' added' : 'Item added') . ' to cart successfully.',
+                'cart_count' => $cartCount,
+                'product' => $firstProduct ? [
+                    'id' => $firstProduct->id,
+                    'name' => $firstProduct->name,
+                    'brand' => $firstProduct->brand,
+                    'price' => $firstProduct->price,
+                ] : null,
             ]);
         }
 
         return redirect()
-            ->route('cart.index')
-            ->with('success', 'Build added to cart successfully!');
+            ->back(fallback: route('cart.index'))
+            ->with('success', 'Added to cart successfully!');
     }
 
     public function update(Request $request, int $itemId)

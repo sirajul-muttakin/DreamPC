@@ -54,39 +54,78 @@ class BuildController extends Controller
         }
         $productIds = array_values(array_filter(array_map('intval', (array)$productIds)));
 
-        // Fallback: If no product IDs provided, pick sample products
+        $cartService = app(\App\Services\CartService::class);
+        $cart = $cartService->getOrCreateCart();
+        $isFromCart = false;
+
+        // If no explicit product IDs provided in request, load products from active cart
         if (empty($productIds)) {
-            $productIds = \App\Models\Product::pluck('id')->take(4)->toArray();
+            $cart->load(['items.product.category', 'items.product.specifications']);
+            $productIds = $cart->items->pluck('product_id')->toArray();
+            $isFromCart = true;
         }
 
-        $products = \App\Models\Product::with(['category', 'specifications'])->whereIn('id', $productIds)->get();
+        if (!empty($productIds)) {
+            $products = \App\Models\Product::with(['category', 'specifications'])->whereIn('id', $productIds)->get();
 
-        // 1. Cost Breakdown & Percentages
-        $costBreakdown = $this->calculator->calculateFullBreakdown($productIds);
+            // 1. Cost Breakdown & Percentages
+            $costBreakdown = $this->calculator->calculateFullBreakdown($productIds);
 
-        // 2. Compatibility & Bottleneck Checks
-        $compatibilityEngine = app(\App\Services\CompatibilityEngine::class);
-        $compatResult = $compatibilityEngine->checkCompatibility($productIds);
-        $warningsResult = $compatibilityEngine->detectBottlenecksAndConflicts($productIds);
+            // 2. Compatibility & Bottleneck Checks
+            $compatibilityEngine = app(\App\Services\CompatibilityEngine::class);
+            $compatResult = $compatibilityEngine->checkCompatibility($productIds);
+            $warningsResult = $compatibilityEngine->detectBottlenecksAndConflicts($productIds);
 
-        // 3. System Power TDP
-        $specExtractor = app(\App\Services\SpecExtractorService::class);
-        $context = $specExtractor->getSystemSpecsContext($productIds);
-        
-        $totalTdp = 0;
-        foreach ($context['components'] as $component) {
-            $tdpStr = $component['specs']['tdp'] ?? null;
-            if ($tdpStr) {
-                preg_match('/(\d+)/', $tdpStr, $matches);
-                if (!empty($matches[1])) {
-                    $totalTdp += (int)$matches[1];
+            // 3. System Power TDP
+            $specExtractor = app(\App\Services\SpecExtractorService::class);
+            $context = $specExtractor->getSystemSpecsContext($productIds);
+            
+            $totalTdp = 0;
+            foreach ($context['components'] as $component) {
+                $tdpStr = $component['specs']['tdp'] ?? null;
+                if ($tdpStr) {
+                    preg_match('/(\d+)/', $tdpStr, $matches);
+                    if (!empty($matches[1])) {
+                        $totalTdp += (int)$matches[1];
+                    }
                 }
             }
+            $recommendedPsuWattage = $totalTdp > 0 ? (int)ceil($totalTdp * 1.25) : 0;
+
+            // Check if PSU is present in build
+            $psuComponent = $context['components']['psu'] ?? null;
+            $installedPsuWattage = null;
+            if ($psuComponent) {
+                $psuWattageStr = $psuComponent['specs']['wattage'] ?? null;
+                if ($psuWattageStr) {
+                    preg_match('/(\d+)/', $psuWattageStr, $psuMatches);
+                    if (!empty($psuMatches[1])) {
+                        $installedPsuWattage = (int)$psuMatches[1];
+                    }
+                }
+            }
+        } else {
+            $products = collect();
+            $costBreakdown = [
+                'subtotal' => 0.0,
+                'tax' => 0.0,
+                'shipping' => 0.0,
+                'total' => 0.0,
+                'items' => [],
+            ];
+            $compatResult = [
+                'is_compatible' => true,
+                'incompatibilities' => [],
+            ];
+            $warningsResult = [
+                'clearance_conflicts' => [],
+                'bottlenecks' => [],
+                'all_warnings' => [],
+            ];
+            $totalTdp = 0;
+            $recommendedPsuWattage = 0;
+            $installedPsuWattage = null;
         }
-        if ($totalTdp === 0) {
-            $totalTdp = 350; // Default reasonable baseline estimate
-        }
-        $recommendedPsuWattage = (int)ceil($totalTdp * 1.25);
 
         return view('build.summary', [
             'products' => $products,
@@ -95,6 +134,9 @@ class BuildController extends Controller
             'warningsResult' => $warningsResult,
             'totalTdp' => $totalTdp,
             'recommendedPsuWattage' => $recommendedPsuWattage,
+            'installedPsuWattage' => $installedPsuWattage,
+            'isFromCart' => $isFromCart,
+            'cartItemProductIds' => $cart->items->pluck('product_id')->toArray(),
         ]);
     }
 }

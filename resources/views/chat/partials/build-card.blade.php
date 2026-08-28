@@ -49,8 +49,12 @@
         </div>
     @endif
 
-    <!-- Add Build to Cart Button -->
-    <div class="pt-2 border-t border-slate-800/80 flex justify-end">
+    <!-- Action Buttons -->
+    <div class="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-end gap-2">
+        <a href="{{ route('build.summary', ['product_ids' => collect($products)->pluck('id')->implode(',')]) }}" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-lg transition text-center flex items-center justify-center space-x-1.5">
+            <span>📊</span>
+            <span>View Build Summary</span>
+        </a>
         <form method="POST" action="{{ route('cart.batch-add') }}" class="w-full sm:w-auto">
             @csrf
             @foreach($products as $product)

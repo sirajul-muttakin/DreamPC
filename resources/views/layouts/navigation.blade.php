@@ -26,6 +26,9 @@
                     <a href="/cart" class="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1.5">
                         <span>🛒</span>
                         <span>Cart</span>
+                        <span id="nav-cart-count" class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-500/30 {{ ($navCartCount ?? 0) > 0 ? '' : 'hidden' }}">
+                            {{ $navCartCount ?? 0 }}
+                        </span>
                     </a>
                     <a href="/orders" class="text-sm font-medium text-slate-300 hover:text-white transition flex items-center gap-1">
                         <span>📜</span>
@@ -84,6 +87,12 @@
             <a href="/" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-white transition">Catalog</a>
             <a href="/build/summary" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-white transition">📊 Build Summary</a>
             <a href="/chat" class="block px-3 py-2 rounded-md text-base font-medium text-blue-400 hover:bg-blue-950/40 transition">🤖 AI Assistant</a>
+            <a href="/cart" class="block px-3 py-2 rounded-md text-base font-medium text-emerald-400 hover:bg-emerald-950/40 transition flex items-center justify-between">
+                <span>🛒 Cart</span>
+                <span id="mobile-nav-cart-count" class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 {{ ($navCartCount ?? 0) > 0 ? '' : 'hidden' }}">
+                    {{ $navCartCount ?? 0 }}
+                </span>
+            </a>
             <a href="/orders" class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 hover:text-white transition">📜 Orders</a>
             @auth
                 @if(Auth::user()->role === 'admin')

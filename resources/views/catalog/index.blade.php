@@ -162,11 +162,11 @@
                                     <div class="text-lg font-black text-emerald-400">${{ number_format($product->price, 2) }}</div>
                                 </div>
 
-                                <form method="POST" action="{{ route('cart.add') }}">
+                                <form method="POST" action="{{ route('cart.add') }}" class="catalog-add-cart-form" data-product-name="{{ $product->name }}">
                                     @csrf
                                     <input type="hidden" name="product_ids[]" value="{{ $product->id }}">
-                                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition shadow-md shadow-blue-600/20">
-                                        Add to Cart
+                                    <button type="submit" class="add-to-cart-btn bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition shadow-md shadow-blue-600/20 flex items-center justify-center space-x-1.5">
+                                        <span>Add to Cart</span>
                                     </button>
                                 </form>
                             </div>
@@ -188,4 +188,78 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const forms = document.querySelectorAll('.catalog-add-cart-form');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    forms.forEach(form => {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const btn = form.querySelector('.add-to-cart-btn');
+            const productName = form.getAttribute('data-product-name') || 'Product';
+            const originalBtnHtml = btn.innerHTML;
+            const originalBtnClass = btn.className;
+
+            // Set loading state
+            btn.disabled = true;
+            btn.innerHTML = `<span>⏳ Adding...</span>`;
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // Update dynamic cart badge in navbar
+                    if (typeof updateNavCartCount === 'function' && data.cart_count !== undefined) {
+                        updateNavCartCount(data.cart_count);
+                    }
+
+                    // Success button animation state
+                    btn.className = 'add-to-cart-btn bg-emerald-600 text-white text-xs font-medium px-3.5 py-2 rounded-lg transition shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-1.5';
+                    btn.innerHTML = `<span>✓ Added!</span>`;
+
+                    // Show sleek toast notification
+                    if (typeof showToast === 'function') {
+                        showToast(`Added ${productName} to cart`, 'success', {
+                            text: 'View Cart →',
+                            url: "{{ route('cart.index') }}"
+                        });
+                    }
+
+                    setTimeout(() => {
+                        btn.innerHTML = originalBtnHtml;
+                        btn.className = originalBtnClass;
+                        btn.disabled = false;
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || 'Failed to add item');
+                }
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+                btn.innerHTML = `<span>⚠️ Error</span>`;
+                if (typeof showToast === 'function') {
+                    showToast(`Could not add ${productName} to cart.`, 'error');
+                }
+                setTimeout(() => {
+                    btn.innerHTML = originalBtnHtml;
+                    btn.className = originalBtnClass;
+                    btn.disabled = false;
+                }, 2000);
+            }
+        });
+    });
+});
+</script>
 @endsection

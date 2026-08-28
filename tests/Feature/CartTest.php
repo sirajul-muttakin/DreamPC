@@ -72,4 +72,31 @@ class CartTest extends TestCase
         $response->assertOk();
         $this->assertDatabaseMissing('cart_items', ['id' => $cartItem->id]);
     }
+
+    #[Test]
+    public function adding_a_product_via_json_returns_cart_count_and_status(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Corsair Vengeance DDR5 32GB',
+            'price' => 119.99,
+        ]);
+
+        $response = $this->postJson(route('cart.add'), [
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'status' => 'success',
+            'cart_count' => 2,
+        ]);
+
+        $this->assertDatabaseHas('cart_items', [
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+    }
 }
